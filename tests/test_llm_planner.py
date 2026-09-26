@@ -212,3 +212,38 @@ def test_gemini_quota_error_is_not_retried():
     backend = GeminiBackend("k", "g", client=type("C", (), {"models": FakeModels()})())
     with pytest.raises(RuntimeError, match="429"):
         backend.complete(SYSTEM_PROMPT, "P")
+
+
+# --- quota handling (found in the second real session: 429 on the free tier) ----
+from agent.llm_planner import cooldown_seconds, summarize_error  # noqa: E402
+
+REAL_429_MINUTE = ("429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current "
+                   "quota, please check your plan and billing details. Quota exceeded for metric: "
+                   "generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 10. "
+                   "Please retry in 37.2s.', 'details': [{'quotaId': "
+                   "'GenerateRequestsPerMinutePerProjectPerModel-FreeTier'}, {'retryDelay': '37s'}]}}")
+REAL_429_DAY = REAL_429_MINUTE.replace("PerMinute", "PerDay")
+
+
+def test_error_summaries_are_short_and_clear():
+    assert summarize_error(RuntimeError(REAL_429_MINUTE)) == "quota exceeded (429)"
+    assert "invalid API key" in summarize_error(RuntimeError("400 API key not valid"))
+    assert "model not found" in summarize_error(RuntimeError("404 NOT_FOUND models/gemini-x"))
+
+
+def test_cooldown_reads_retry_delay_or_daily_quota():
+    assert cooldown_seconds(RuntimeError(REAL_429_MINUTE)) == 37
+    assert cooldown_seconds(RuntimeError(REAL_429_DAY)) == 3600
+    assert cooldown_seconds(TimeoutError("slow")) == 0            # not a quota error: no pause
+
+
+def test_quota_error_pauses_gemini_for_next_questions(data):
+    df, profile = data
+    gem = FakeBackend("gemini", error=RuntimeError(REAL_429_MINUTE))
+    groq = FakeBackend("groq", HYGIENE_PLAN)
+    llm = LLMPlanner([gem, groq])
+    first = answer("hygiene kits in total?", df, profile, planner=llm)
+    second = answer("total hygiene kits handed out", df, profile, planner=llm)
+    assert len(gem.prompts) == 1                                  # Gemini NOT called again
+    assert "quota exceeded (429)" in first.planner_used
+    assert "paused" in second.planner_used and second.kind == "answer"

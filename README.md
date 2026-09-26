@@ -6,7 +6,7 @@ An AI agent plans the analysis, code validates the plan against the real columns
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)
 ![Gemini](https://img.shields.io/badge/LLM-Gemini%20%E2%86%92%20Groq%20%E2%86%92%20rules-2a78d6)
-![Tests](https://img.shields.io/badge/tests-83%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-86%20passing-2ea44f)
 
 ![Answer with chart and explanation](screenshots/03_answer_chart.png)
 
@@ -100,7 +100,7 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 
 ```bash
 streamlit run app.py        # the app → click "Use sample data"
-pytest -q                   # 83 tests, no API key or internet needed
+pytest -q                   # 86 tests, no API key or internet needed
 python benchmark.py         # rule vs LLM planner → BENCHMARK.md
 ```
 
@@ -127,7 +127,7 @@ ai-data-analyst/
 │   ├── validator.py       checks every plan against the real data
 │   ├── tools.py           the ONLY code that touches the DataFrame
 │   └── agent.py           guardrail → plan → validate → tool → answer
-├── tests/                 83 pytest tests
+├── tests/                 86 pytest tests
 ├── data/aid_distributions.csv   synthetic sample (60 rows, fictional partners)
 ├── benchmark.py           planner comparison on 18 questions
 ├── PROJECT_PLAN.md        design sheet written before coding
@@ -137,7 +137,7 @@ ai-data-analyst/
 
 ## Testing
 
-- **83 automated tests** cover the file loader, the five tools against Pandas ground truth, the agent end to end (T1–T14), and the LLM path with fake backends (no internet needed).
+- **86 automated tests** cover the file loader, the five tools against Pandas ground truth, the agent end to end (T1–T14), and the LLM path with fake backends (no internet needed).
 - **Defects found and fixed during testing** are documented in [`TEST_RESULTS.md`](TEST_RESULTS.md). One example: a misspelled "Khan Yunis" originally returned the count for *all* rows. It now asks *"Did you mean…?"*.
 - **Benchmark** ([`BENCHMARK.md`](BENCHMARK.md)): the rule planner scores 14/18 and fails on paraphrases ("families", "area", "handed out"). Those are the cases the LLM planner is there to handle.
 
@@ -157,6 +157,7 @@ ai-data-analyst/
 - Questions in **English** only. Column names and values can be in any language.
 - **One file, one analysis per question.** No joins, ratios/percentages or multi-step questions yet.
 - The **rule planner** matches words, not meaning (see benchmark). The LLM planner needs a key and internet.
+- **Free-tier quotas are small.** The newest Flash model allowed only ~20 requests/day in testing, so the default is `gemini-flash-lite-latest`. After a quota error (429) the agent pauses that model and continues with Groq or rules (circuit breaker), and the explanation shows why.
 - On the **free Gemini tier**, prompts may be used by Google to improve models. That is why only the schema, never the rows, is sent. Category *values* (e.g. partner names) are part of the schema.
 - Chat history lives in the browser session and disappears on refresh. Nothing is stored on a server.
 - CSV only (≤ 10 MB). Excel files must be saved as CSV first.

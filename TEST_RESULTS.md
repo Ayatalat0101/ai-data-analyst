@@ -3,7 +3,7 @@
 Expected behaviour was written in `PROJECT_PLAN.md §10` **before** coding. Ground-truth numbers were computed independently with plain Pandas on `data/aid_distributions.csv`.
 Actual behaviour below was recorded from real runs (rule planner, no API key) on 2026-09-26.
 
-**Summary:** 14 / 14 planned tests pass · 83 automated tests pass (`pytest`) · 7 defects found during testing, all fixed and re-tested.
+**Summary:** 14 / 14 planned tests pass · 86 automated tests pass (`pytest`) · 8 defects found during testing, all fixed and re-tested.
 
 ## 1. Planned acceptance tests
 
@@ -35,6 +35,7 @@ Actual behaviour below was recorded from real runs (rule planner, no API key) on
 | D5 | First real LLM session | Any question with AI planner on | **Gemini failed on every question and Groq answered**, but the UI only showed "groq" (a silent fallback hid a broken primary model) | Errors from earlier backends were discarded when a later one succeeded | The planner label now reads `groq — after: gemini: <error>`; Gemini retries once in plain-JSON mode on `400 INVALID_ARGUMENT`; `python -m agent.llm_planner` tests each backend alone | ✅ `test_fallback_to_second_backend_is_visible`, `test_gemini_retries_without_schema_on_400`, `test_gemini_quota_error_is_not_retried` |
 | D6 | First real LLM session | Which is the best partner? | LLM asked "How should I evaluate partners?" **with no options** | The model ignored prompt rule 5 | If an LLM clarification has no options, the agent borrows the rule planner's options (or offers examples) | ✅ `test_llm_clarification_without_options_gets_options` |
 | D7 | First real LLM session | "Upload a second file after chatting" (a test description typed as a question) | LLM replied **"Uploading additional files is not allowed"**, a false statement about the app | Rejection text was written by the LLM | For `unsafe` / `out_of_scope` the LLM picks the category and **our code writes the message** | ✅ `test_llm_rejection_text_is_replaced_by_our_template` |
+| D8 | Second real session (after D5 fix made errors visible) | Any question, AI planner on | Gemini answered some questions, then **every call waited for a 429 quota error** before Groq answered; the error text was a long raw JSON | Free tier of the newest Flash model allows very few requests/day; no memory of a quota failure | **Circuit breaker**: after a 429 the backend is paused (server `retryDelay`, or 1 h for a daily quota); short error summaries (`quota exceeded (429)`); default model → `gemini-flash-lite-latest` | ✅ `test_quota_error_pauses_gemini_for_next_questions`, `test_cooldown_reads_retry_delay_or_daily_quota`, `test_error_summaries_are_short_and_clear` |
 
 **Lesson from D2:** the original test only checked that each option produced *an* answer, not the *right* one. The strengthened test checks the column and calculation for every option.
 
@@ -44,7 +45,7 @@ Actual behaviour below was recorded from real runs (rule planner, no API key) on
 
 ```
 pytest -q
-83 passed
+86 passed
 ```
 
 | File | Tests | Covers |
@@ -52,7 +53,7 @@ pytest -q
 | `tests/test_data_loader.py` | 14 | valid profile, every invalid-file case, Arabic Windows encoding, privacy of the schema |
 | `tests/test_tools.py` | 19 | the 5 approved actions against ground truth, boundaries, dates, impossible requests, read-only guarantee |
 | `tests/test_agent.py` | 29 | T1–T14 end to end, clarification options, misspellings, validator, fallback when the planner crashes |
-| `tests/test_llm_planner.py` | 21 | LLM path with fake backends: parsing, privacy of the prompt, invented columns, prompt injection, Gemini → Groq → rules fallback, cache, guardrail before the LLM |
+| `tests/test_llm_planner.py` | 24 | LLM path with fake backends: parsing, privacy of the prompt, invented columns, prompt injection, Gemini → Groq → rules fallback, cache, guardrail before the LLM |
 
 ## 4. Planner benchmark
 

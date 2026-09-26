@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from typing import Mapping, Protocol
 
 from pydantic import ValidationError
@@ -21,7 +22,42 @@ from pydantic import ValidationError
 from .data_loader import DatasetProfile
 from .plan import Plan
 
-DEFAULT_GEMINI_MODEL = "gemini-flash-latest"
+# Flash-Lite, not Flash: in testing, the free tier of the newest Flash model
+# allowed only ~20 requests/day (429 after one session). Planning is a small
+# structured-output task, so the lighter model is enough, with a far larger quota.
+# Override with GEMINI_MODEL in secrets.toml.
+DEFAULT_GEMINI_MODEL = "gemini-flash-lite-latest"
+DEFAULT_COOLDOWN_S = 60
+
+
+def summarize_error(err: Exception) -> str:
+    """Turn a long SDK error into a short, human-readable reason."""
+    text = str(err)
+    if "429" in text or "RESOURCE_EXHAUSTED" in text:
+        return "quota exceeded (429)"
+    if "401" in text or "403" in text or "API key not valid" in text or "PERMISSION_DENIED" in text:
+        return "invalid API key or no access (401/403)"
+    if "404" in text or "NOT_FOUND" in text:
+        return "model not found (404) — check GEMINI_MODEL"
+    if "400" in text or "INVALID_ARGUMENT" in text:
+        return "request rejected (400)"
+    if "timeout" in text.lower() or isinstance(err, TimeoutError):
+        return "timeout"
+    if isinstance(err, (ConnectionError, OSError)):
+        return "no connection"
+    return f"{type(err).__name__}: {text[:80]}"
+
+
+def cooldown_seconds(err: Exception) -> float:
+    """How long to stop calling a backend after an error. 0 = don't pause.
+    Daily quota -> 1 hour; per-minute quota -> the server's retryDelay or 60 s."""
+    text = str(err)
+    if "429" not in text and "RESOURCE_EXHAUSTED" not in text:
+        return 0
+    if re.search(r"per ?day|PerDay|daily", text, re.I):
+        return 3600
+    m = re.search(r"retry(?:Delay)?['\"]?\s*[:=]?\s*['\"]?(\d+(?:\.\d+)?)s", text, re.I)
+    return float(m.group(1)) if m else DEFAULT_COOLDOWN_S
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
 TIMEOUT_S = 20
 
@@ -181,6 +217,7 @@ class LLMPlanner:
             raise ValueError("LLMPlanner needs at least one backend")
         self.backends = backends
         self._cache: dict[str, tuple[Plan, str]] = {}
+        self._paused_until: dict[str, float] = {}   # backend name -> monotonic time
         self.calls = 0                       # real API calls made (for tests/quota)
 
     @property
@@ -199,6 +236,12 @@ class LLMPlanner:
 
         prompt, errors = build_prompt(question, profile), []
         for backend in self.backends:
+            # Circuit breaker: a backend that just hit its quota is skipped until
+            # the cooldown ends, instead of making the user wait for a certain 429.
+            wait = self._paused_until.get(backend.name, 0) - time.monotonic()
+            if wait > 0:
+                errors.append(f"{backend.name}: paused {wait:.0f}s after quota error")
+                continue
             try:
                 self.calls += 1
                 plan = parse_plan(backend.complete(SYSTEM_PROMPT, prompt))
@@ -212,7 +255,10 @@ class LLMPlanner:
             except (ValidationError, ValueError, json.JSONDecodeError) as err:
                 errors.append(f"{backend.name}: invalid plan ({type(err).__name__})")
             except Exception as err:          # network, quota (429), auth, timeout
-                errors.append(f"{backend.name}: {type(err).__name__}: {str(err)[:120]}")
+                errors.append(f"{backend.name}: {summarize_error(err)}")
+                pause = cooldown_seconds(err)
+                if pause:
+                    self._paused_until[backend.name] = time.monotonic() + pause
         raise PlannerUnavailable(" | ".join(errors))
 
 
