@@ -157,7 +157,7 @@ ai-data-analyst/
 - Questions in **English** only. Column names and values can be in any language.
 - **One file, one analysis per question.** No joins, ratios/percentages or multi-step questions yet.
 - The **rule planner** matches words, not meaning (see benchmark). The LLM planner needs a key and internet.
-- **Free-tier quotas are small.** The newest Flash model allowed only ~20 requests/day in testing, so the default is `gemini-flash-lite-latest`. After a quota error (429) the agent pauses that model and continues with Groq or rules (circuit breaker), and the explanation shows why.
+- **Free-tier quotas are small and change often.** In testing, Gemini Flash returned `429` after a few quick questions (mostly the per-minute limit; check yours at [AI Studio → rate limits](https://aistudio.google.com/rate-limit)), so the default is `gemini-flash-lite-latest`. After a quota error (429) the agent pauses that model and continues with Groq or rules (circuit breaker), and the explanation shows why.
 - On the **free Gemini tier**, prompts may be used by Google to improve models. That is why only the schema, never the rows, is sent. Category *values* (e.g. partner names) are part of the schema.
 - Chat history lives in the browser session and disappears on refresh. Nothing is stored on a server.
 - CSV only (≤ 10 MB). Excel files must be saved as CSV first.

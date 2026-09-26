@@ -6,7 +6,7 @@ the final answer, not the wording. Run on your machine (needs internet + key):
 
     python benchmark.py            # writes BENCHMARK.md
 
-Uses ~1 API call per question (cached plans are not re-requested).
+Uses ~1 API call per question and takes ~2.5 minutes (paced for free-tier limits).
 """
 from __future__ import annotations
 
@@ -108,7 +108,7 @@ def run(planner, label: str):
                      "planner": r.planner_used, "ms": ms})
         print(f"  {'✅' if ok else '❌'} [{label}] {q[:60]:<60} {short(r)[:50]}")
         if planner is not None:
-            time.sleep(4.5)            # stay under ~15 requests/minute on the free tier
+            time.sleep(7)              # ~8 requests/minute: under the free per-minute limit
     return rows
 
 
@@ -141,8 +141,13 @@ def main():
     if ai:
         fallbacks = sum("fallback" in x["planner"] for x in ai)
         avg = sum(x["ms"] for x in ai) / len(ai)
-        lines += ["", f"LLM: {llm.name} · average {avg:,.0f} ms per question · "
-                      f"{fallbacks} fell back to rules."]
+        by = {"gemini": 0, "groq": 0, "rules": 0}
+        for x in ai:
+            first = x["planner"].split(" ")[0]
+            by[first if first in by else "rules"] += 1
+        lines += ["", f"LLM chain: {llm.name} · average {avg:,.0f} ms per question · "
+                      f"answered by gemini {by['gemini']}, groq {by['groq']}, rules {by['rules']} "
+                      f"({fallbacks} full fallbacks to rules)."]
     lines += ["", "## Per question", "", "| # | Question | Rules | LLM | LLM answer |", "|---|---|---|---|---|"]
     for i, r in enumerate(rules):
         a = ai[i] if ai else None

@@ -22,9 +22,10 @@ from pydantic import ValidationError
 from .data_loader import DatasetProfile
 from .plan import Plan
 
-# Flash-Lite, not Flash: in testing, the free tier of the newest Flash model
-# allowed only ~20 requests/day (429 after one session). Planning is a small
-# structured-output task, so the lighter model is enough, with a far larger quota.
+# Flash-Lite, not Flash: in testing, Gemini Flash's free tier returned 429 after a
+# few quick questions (per-minute limit). Free limits vary by model and change;
+# see aistudio.google.com/rate-limit. Planning is a small
+# structured-output task, so the lighter model is enough and usually has higher free limits.
 # Override with GEMINI_MODEL in secrets.toml.
 DEFAULT_GEMINI_MODEL = "gemini-flash-lite-latest"
 DEFAULT_COOLDOWN_S = 60
