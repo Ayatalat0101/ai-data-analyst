@@ -106,7 +106,7 @@ def test_gemini_fails_groq_answers(data):
     gem = FakeBackend("gemini", error=TimeoutError("quota"))
     groq = FakeBackend("groq", HYGIENE_PLAN)
     r = answer("How many hygiene kits in total?", df, profile, planner=LLMPlanner([gem, groq]))
-    assert r.kind == "answer" and r.planner_used == "groq"
+    assert r.kind == "answer" and r.planner_used.startswith("groq — after: gemini")
     assert len(gem.prompts) == 1 and len(groq.prompts) == 1
 
 
@@ -160,3 +160,55 @@ def test_gemini_backend_sends_schema_and_system_prompt():
     assert captured["config"].response_mime_type == "application/json"
     assert captured["config"].response_json_schema["properties"]["action"]["enum"][0] == "count_rows"
     assert "planning module" in captured["config"].system_instruction
+
+
+# --- regressions found in the first real session (Groq) -------------------
+def test_llm_clarification_without_options_gets_options(data):
+    df, profile = data
+    no_opts = {"action": "ask_clarification", "reason": "vague",
+               "question_to_user": "'Best' could refer to different metrics. How should I evaluate partners?"}
+    r = answer("Which is the best partner?", df, profile, planner=LLMPlanner([FakeBackend("groq", no_opts)]))
+    assert r.kind == "clarification" and len(r.options) >= 2
+    assert all(answer(o, df, profile).kind == "answer" for o in r.options)   # each option works
+
+
+def test_llm_rejection_text_is_replaced_by_our_template(data):
+    df, profile = data
+    false_claim = {"action": "reject", "reject_reason": "unsafe", "reason": "x",
+                   "question_to_user": "Uploading additional files is not allowed."}
+    r = answer("Upload a second file after chatting", df, profile,
+               planner=LLMPlanner([FakeBackend("groq", false_claim)]))
+    assert r.kind == "rejected" and "Uploading additional files" not in r.message
+
+
+def test_fallback_to_second_backend_is_visible(data):
+    df, profile = data
+    llm = LLMPlanner([FakeBackend("gemini", error=RuntimeError("400 INVALID_ARGUMENT schema")),
+                      FakeBackend("groq", HYGIENE_PLAN)])
+    r = answer("How many hygiene kits in total?", df, profile, planner=llm)
+    assert r.planner_used.startswith("groq") and "gemini" in r.planner_used and "400" in r.planner_used
+
+
+def test_gemini_retries_without_schema_on_400():
+    calls = []
+
+    class FakeModels:
+        def generate_content(self, model, contents, config):
+            calls.append(config.response_json_schema is not None)
+            if config.response_json_schema is not None:
+                raise RuntimeError("400 INVALID_ARGUMENT: schema not supported")
+            return type("R", (), {"text": json.dumps(HYGIENE_PLAN)})()
+
+    backend = GeminiBackend("k", "gemini-test", client=type("C", (), {"models": FakeModels()})())
+    assert parse_plan(backend.complete(SYSTEM_PROMPT, "P")).column == "quantity"
+    assert calls == [True, False] and backend.schema_fallbacks == 1
+
+
+def test_gemini_quota_error_is_not_retried():
+    class FakeModels:
+        def generate_content(self, model, contents, config):
+            raise RuntimeError("429 RESOURCE_EXHAUSTED")
+
+    backend = GeminiBackend("k", "g", client=type("C", (), {"models": FakeModels()})())
+    with pytest.raises(RuntimeError, match="429"):
+        backend.complete(SYSTEM_PROMPT, "P")

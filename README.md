@@ -6,7 +6,7 @@ An AI agent plans the analysis, code validates the plan against the real columns
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)
 ![Gemini](https://img.shields.io/badge/LLM-Gemini%20%E2%86%92%20Groq%20%E2%86%92%20rules-2a78d6)
-![Tests](https://img.shields.io/badge/tests-78%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-83%20passing-2ea44f)
 
 ![Answer with chart and explanation](screenshots/03_answer_chart.png)
 
@@ -100,7 +100,7 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 
 ```bash
 streamlit run app.py        # the app → click "Use sample data"
-pytest -q                   # 78 tests, no API key or internet needed
+pytest -q                   # 83 tests, no API key or internet needed
 python benchmark.py         # rule vs LLM planner → BENCHMARK.md
 ```
 
@@ -127,7 +127,7 @@ ai-data-analyst/
 │   ├── validator.py       checks every plan against the real data
 │   ├── tools.py           the ONLY code that touches the DataFrame
 │   └── agent.py           guardrail → plan → validate → tool → answer
-├── tests/                 78 pytest tests
+├── tests/                 83 pytest tests
 ├── data/aid_distributions.csv   synthetic sample (60 rows, fictional partners)
 ├── benchmark.py           planner comparison on 18 questions
 ├── PROJECT_PLAN.md        design sheet written before coding
@@ -137,7 +137,7 @@ ai-data-analyst/
 
 ## Testing
 
-- **78 automated tests** cover the file loader, the five tools against Pandas ground truth, the agent end to end (T1–T14), and the LLM path with fake backends (no internet needed).
+- **83 automated tests** cover the file loader, the five tools against Pandas ground truth, the agent end to end (T1–T14), and the LLM path with fake backends (no internet needed).
 - **Defects found and fixed during testing** are documented in [`TEST_RESULTS.md`](TEST_RESULTS.md). One example: a misspelled "Khan Yunis" originally returned the count for *all* rows. It now asks *"Did you mean…?"*.
 - **Benchmark** ([`BENCHMARK.md`](BENCHMARK.md)): the rule planner scores 14/18 and fails on paraphrases ("families", "area", "handed out"). Those are the cases the LLM planner is there to handle.
 

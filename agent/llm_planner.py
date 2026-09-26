@@ -130,16 +130,25 @@ class GeminiBackend:
 
     def complete(self, system: str, prompt: str) -> str:
         from google.genai import types
-        resp = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system,
-                response_mime_type="application/json",
-                response_json_schema=Plan.model_json_schema(),   # structured output
-            ),
-        )
-        return resp.text
+
+        def call(with_schema: bool) -> str:
+            cfg = dict(system_instruction=system, response_mime_type="application/json")
+            if with_schema:
+                cfg["response_json_schema"] = Plan.model_json_schema()   # structured output
+            resp = self.client.models.generate_content(
+                model=self.model, contents=prompt, config=types.GenerateContentConfig(**cfg))
+            return resp.text
+
+        try:
+            return call(with_schema=True)
+        except Exception as err:
+            # 400 INVALID_ARGUMENT = this model rejected the schema format.
+            # Retry in plain JSON mode: the prompt describes the format and
+            # parse_plan() + Pydantic still enforce it. Quota/auth errors are re-raised.
+            if "400" in str(err) or "INVALID_ARGUMENT" in str(err):
+                self.schema_fallbacks = getattr(self, "schema_fallbacks", 0) + 1
+                return call(with_schema=False)
+            raise
 
 
 class GroqBackend:
@@ -193,13 +202,43 @@ class LLMPlanner:
             try:
                 self.calls += 1
                 plan = parse_plan(backend.complete(SYSTEM_PROMPT, prompt))
-                self._cache[key] = (plan, backend.name)
-                return plan.model_copy(deep=True), backend.name
+                # If an earlier backend failed, SAY so: a silent fallback hides a
+                # broken primary model (this happened: Gemini failed, Groq answered,
+                # and nothing on screen showed it).
+                used = backend.name + (f" — after: {' | '.join(errors)}" if errors else "")
+                self.last_errors = errors
+                self._cache[key] = (plan, used)
+                return plan.model_copy(deep=True), used
             except (ValidationError, ValueError, json.JSONDecodeError) as err:
                 errors.append(f"{backend.name}: invalid plan ({type(err).__name__})")
             except Exception as err:          # network, quota (429), auth, timeout
                 errors.append(f"{backend.name}: {type(err).__name__}: {str(err)[:120]}")
         raise PlannerUnavailable(" | ".join(errors))
+
+
+def diagnose(secrets: Mapping) -> None:
+    """Test each backend ALONE with one question and print the raw result/error.
+    Run:  python -m agent.llm_planner"""
+    from .data_loader import load_csv
+    from pathlib import Path
+    sample = Path(__file__).parent.parent / "data" / "aid_distributions.csv"
+    _, profile = load_csv(sample.read_bytes(), sample.name)
+    chain = planner_from_secrets(secrets)
+    if chain is None:
+        print("No keys found in .streamlit/secrets.toml")
+        return
+    prompt = build_prompt("How many families did Nour Relief help?", profile)
+    for b in chain.backends:
+        print(f"\n=== {b.name} ===")
+        try:
+            raw = b.complete(SYSTEM_PROMPT, prompt)
+            print("raw reply:", raw[:400])
+            print("parsed plan:", parse_plan(raw).model_dump(exclude_none=True, exclude_defaults=True))
+            if getattr(b, "schema_fallbacks", 0):
+                print("note: schema mode was rejected (400); plain JSON mode worked")
+            print("RESULT: OK ✅")
+        except Exception as err:
+            print(f"RESULT: FAILED ❌  {type(err).__name__}: {err}")
 
 
 def planner_from_secrets(secrets: Mapping) -> LLMPlanner | None:
@@ -212,3 +251,10 @@ def planner_from_secrets(secrets: Mapping) -> LLMPlanner | None:
     if qkey:
         backends.append(GroqBackend(qkey, secrets.get("GROQ_MODEL", DEFAULT_GROQ_MODEL)))
     return LLMPlanner(backends) if backends else None
+
+
+if __name__ == "__main__":
+    import tomllib
+    from pathlib import Path
+    path = Path(__file__).parent.parent / ".streamlit" / "secrets.toml"
+    diagnose(tomllib.loads(path.read_text(encoding="utf-8")) if path.exists() else {})

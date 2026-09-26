@@ -138,6 +138,41 @@ def _no_results_hint(plan: Plan, profile: DatasetProfile) -> str:
     return (" Note: " + "; ".join(hints) + ".") if hints else " Try removing a filter."
 
 
+FIXED_REJECTIONS = {
+    # Found in testing: the LLM told a user "Uploading additional files is not
+    # allowed", which is false. For refusals, the LLM chooses the CATEGORY and
+    # our code writes the words, so the app never makes claims about itself
+    # that aren't true.
+    "unsafe": "I can only read and analyse this file. I can't change data, run code, "
+              "or act outside this analysis.",
+    "out_of_scope": "That's outside what I can do: I summarise what is already in the file "
+                    "(counts, totals, averages, rankings, monthly trends). I don't forecast "
+                    "or explain causes. Try, for example, a total per month so far.",
+}
+
+
+def _repair_llm_messages(plan: Plan, question: str, profile: DatasetProfile) -> Plan:
+    if plan.action == "reject" and plan.reject_reason in FIXED_REJECTIONS:
+        return plan.model_copy(update={"question_to_user": FIXED_REJECTIONS[plan.reject_reason]})
+
+    if plan.action == "ask_clarification" and not plan.options:
+        # Found in testing: the LLM asked "How should I evaluate partners?" but gave
+        # no options, leaving the user to guess the answer format. Borrow the rule
+        # planner's options when it also sees ambiguity; otherwise offer examples.
+        ruled = rule_plan(question, profile)
+        options = ruled.options if ruled.action == "ask_clarification" else []
+        if not options:
+            num = profile.columns_of_kind("number")
+            cat = profile.columns_of_kind("category")
+            options = [o for o in (
+                "How many rows are there?",
+                f"Total {num[0].replace('_', ' ')} by {cat[0]}" if num and cat else None,
+                f"Which {cat[0]} has the most rows?" if cat else None,
+            ) if o]
+        return plan.model_copy(update={"options": options[:4]})
+    return plan
+
+
 def answer(question: str, df: pd.DataFrame, profile: DatasetProfile,
            planner: Planner | None = None, planner_name: str = "rules") -> AgentResponse:
     """The agent loop for ONE question."""
@@ -165,6 +200,7 @@ def answer(question: str, df: pd.DataFrame, profile: DatasetProfile,
 
     # 2. check the decision against the real data ----------------------------
     plan = validate(plan, profile, q)
+    plan = _repair_llm_messages(plan, q, profile)
 
     if plan.action == "ask_clarification":
         return AgentResponse("clarification", plan.question_to_user or "Could you clarify?",
