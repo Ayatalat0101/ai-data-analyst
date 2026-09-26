@@ -113,6 +113,15 @@ python benchmark.py         # rule vs LLM planner → BENCHMARK.md
 - Which is the best partner? *(asks for clarification)*
 - What is the average beneficiary age? *(no such column: explains)*
 
+## Deploy your own live demo (free)
+
+1. Push the repository to GitHub.
+2. Go to [share.streamlit.io](https://share.streamlit.io) → **Create app** → pick the repo, branch `main`, main file `app.py`.
+3. **Advanced settings → Secrets:** paste the contents of `.streamlit/secrets.toml.example` with your real key. Keys never go in the repository.
+4. Deploy. Without a key the demo still works with the rule-based planner.
+
+On a public demo every visitor shares your free Gemini quota. `AI_QUESTIONS_PER_SESSION` (default 20) caps AI-planned questions per visitor; after that, and whenever Gemini returns a quota error, the rule planner answers and the UI says so.
+
 ## Project structure
 
 ```

@@ -30,7 +30,8 @@ st.set_page_config(page_title="AI Data Analyst", page_icon="📊", layout="wide"
 # ----------------------------------------------------------------------------
 def init_state() -> None:
     defaults = {"df": None, "profile": None, "file_sig": None, "source": None,
-                "history": [], "queued": None, "load_error": None, "use_llm": False}
+                "history": [], "queued": None, "load_error": None, "use_llm": False,
+                "ai_used": 0}
     for k, v in defaults.items():
         st.session_state.setdefault(k, v)
 
@@ -54,6 +55,14 @@ def set_dataset(raw: bytes, name: str, source: str) -> None:
 def clear_dataset() -> None:
     st.session_state.update(df=None, profile=None, file_sig=None, source=None,
                             history=[], load_error=None)
+
+
+def ai_limit() -> int:
+    """AI questions per visitor session (protects the shared free quota on the public demo)."""
+    try:
+        return int(st.secrets.get("AI_QUESTIONS_PER_SESSION", 20))
+    except Exception:
+        return 20
 
 
 @st.cache_resource
@@ -112,10 +121,19 @@ def sidebar() -> None:
                                    "If the AI is unavailable, rules answer automatically.")
             st.session_state.use_llm = choice.startswith("🤖")
             st.caption(f"Chain: {llm.name} → rules")
+            if st.session_state.use_llm:
+                left = max(0, ai_limit() - st.session_state.ai_used)
+                st.caption(f"AI questions left in this session: **{left}/{ai_limit()}** "
+                           "(then the rule planner answers).")
         if st.session_state.history:
             st.button("🗑 Clear conversation", on_click=lambda: st.session_state.update(history=[]),
                       use_container_width=True)
-        st.caption("🔒 Data stays in this session. Calculations run locally with Pandas.")
+        if st.session_state.use_llm:
+            st.caption("🔒 Rows never leave this app. In AI mode, the question plus column names, "
+                       "types and category values are sent to Google Gemini to plan the analysis. "
+                       "Calculations run locally with Pandas.")
+        else:
+            st.caption("🔒 Nothing leaves this app. Calculations run locally with Pandas.")
 
 
 # ----------------------------------------------------------------------------
@@ -210,10 +228,17 @@ def main() -> None:
     question = st.session_state.queued or typed
     st.session_state.queued = None
     if question:
-        llm = get_llm_planner() if st.session_state.get("use_llm") else None
+        llm, name = None, "rules"
+        if st.session_state.get("use_llm"):
+            if st.session_state.ai_used < ai_limit():
+                llm = get_llm_planner()
+                st.session_state.ai_used += 1
+            else:
+                # Public demo: one visitor must not spend the whole free Gemini quota.
+                name = "rules (AI limit for this session reached)"
         with st.spinner("Planning the analysis…"):
             st.session_state.history.append(
-                {"q": question, "r": answer(question, df, profile, planner=llm)})
+                {"q": question, "r": answer(question, df, profile, planner=llm, planner_name=name)})
 
     overview(df, profile)
     st.divider()
