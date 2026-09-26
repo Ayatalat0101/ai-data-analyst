@@ -1,0 +1,5 @@
+[server]
+maxUploadSize = 10  # MB, matches the input contract in PROJECT_PLAN.md
+
+[theme]
+primaryColor = "#2a78d6"

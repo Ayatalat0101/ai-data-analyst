@@ -1,0 +1,61 @@
+distribution_id,date,governorate,partner,item,quantity,households_reached,unit_cost_usd,status
+DST-001,2026-01-06,Khan Younis,Nour Relief,Winter Kit,250,0,42.0,Cancelled
+DST-002,2026-01-10,Deir al-Balah,Amal Foundation,Blanket,420,195,9.0,Completed
+DST-003,2026-01-10,North Gaza,Amal Foundation,Food Parcel,100,94,28.0,Pending
+DST-004,2026-01-11,Rafah,Nour Relief,Winter Kit,560,548,42.0,Completed
+DST-005,2026-01-12,Gaza City,Nour Relief,Kitchen Set,190,161,35.0,Pending
+DST-006,2026-01-15,Khan Younis,Nour Relief,Food Parcel,200,0,28.0,Cancelled
+DST-007,2026-01-18,Deir al-Balah,Rahma Network,Food Parcel,270,238,28.0,Completed
+DST-008,2026-01-22,North Gaza,Nour Relief,Food Parcel,60,,28.0,Completed
+DST-009,2026-01-23,Deir al-Balah,Sanad Aid,Winter Kit,300,294,42.0,Completed
+DST-010,2026-02-03,Rafah,Nour Relief,Kitchen Set,320,273,35.0,Completed
+DST-011,2026-02-03,Deir al-Balah,Nour Relief,Kitchen Set,170,162,35.0,Completed
+DST-012,2026-02-05,Gaza City,Sanad Aid,Winter Kit,510,459,42.0,Pending
+DST-013,2026-02-06,Rafah,Nour Relief,Winter Kit,290,272,42.0,Completed
+DST-014,2026-02-07,North Gaza,Rahma Network,Winter Kit,110,99,42.0,Completed
+DST-015,2026-02-08,Rafah,Sanad Aid,Kitchen Set,510,452,35.0,Completed
+DST-016,2026-02-09,Khan Younis,Sanad Aid,Food Parcel,600,539,28.0,Completed
+DST-017,2026-02-10,Rafah,Sanad Aid,Food Parcel,110,105,28.0,Completed
+DST-018,2026-02-13,Gaza City,Sanad Aid,Hygiene Kit,170,165,15.5,Completed
+DST-019,2026-02-17,North Gaza,Nour Relief,Blanket,220,0,9.0,Cancelled
+DST-020,2026-02-20,Deir al-Balah,Sanad Aid,Kitchen Set,250,230,35.0,Completed
+DST-021,2026-02-23,Deir al-Balah,Rahma Network,Winter Kit,80,69,42.0,Completed
+DST-022,2026-02-24,Gaza City,Amal Foundation,Hygiene Kit,470,449,15.5,Completed
+DST-023,2026-02-27,Gaza City,Rahma Network,Kitchen Set,170,162,35.0,Pending
+DST-024,2026-02-28,Rafah,Nour Relief,Food Parcel,140,132,28.0,Pending
+DST-025,2026-03-02,Rafah,Rahma Network,Hygiene Kit,450,448,15.5,Completed
+DST-026,2026-03-02,Rafah,Rahma Network,Blanket,300,149,9.0,Completed
+DST-027,2026-03-05,Gaza City,Nour Relief,Kitchen Set,330,287,35.0,Completed
+DST-028,2026-03-08,Khan Younis,Sanad Aid,Food Parcel,530,517,28.0,Completed
+DST-029,2026-03-09,North Gaza,Nour Relief,Blanket,190,94,9.0,Completed
+DST-030,2026-03-10,Khan Younis,Amal Foundation,Blanket,180,85,9.0,Pending
+DST-031,2026-03-12,Deir al-Balah,Amal Foundation,Kitchen Set,100,91,35.0,Completed
+DST-032,2026-03-15,Deir al-Balah,Nour Relief,Hygiene Kit,280,249,15.5,Completed
+DST-033,2026-03-16,Gaza City,Amal Foundation,Kitchen Set,540,469,35.0,Completed
+DST-034,2026-03-16,Deir al-Balah,Amal Foundation,Kitchen Set,120,,35.0,Completed
+DST-035,2026-03-18,Deir al-Balah,Sanad Aid,Winter Kit,220,0,42.0,Cancelled
+DST-036,2026-03-19,Khan Younis,Sanad Aid,Kitchen Set,130,124,35.0,Pending
+DST-037,2026-03-20,Khan Younis,Rahma Network,Hygiene Kit,520,485,15.5,Completed
+DST-038,2026-03-20,Rafah,Nour Relief,Hygiene Kit,170,0,15.5,Cancelled
+DST-039,2026-03-20,Rafah,Nour Relief,Winter Kit,120,118,42.0,Completed
+DST-040,2026-03-21,Rafah,Sanad Aid,Food Parcel,200,176,28.0,Completed
+DST-041,2026-03-22,North Gaza,Sanad Aid,Food Parcel,370,318,28.0,Completed
+DST-042,2026-03-27,Deir al-Balah,Sanad Aid,Hygiene Kit,600,519,15.5,Completed
+DST-043,2026-03-27,Rafah,Sanad Aid,Kitchen Set,110,107,35.0,Completed
+DST-044,2026-03-30,Khan Younis,Amal Foundation,Winter Kit,560,510,42.0,Completed
+DST-045,2026-04-01,North Gaza,Nour Relief,Winter Kit,310,285,42.0,Pending
+DST-046,2026-04-03,Gaza City,Nour Relief,Kitchen Set,50,0,35.0,Cancelled
+DST-047,2026-04-07,Deir al-Balah,Sanad Aid,Blanket,320,139,9.0,Completed
+DST-048,2026-04-13,Deir al-Balah,Nour Relief,Food Parcel,480,471,28.0,Pending
+DST-049,2026-04-14,Rafah,Nour Relief,Hygiene Kit,280,270,15.5,Completed
+DST-050,2026-04-15,Rafah,Rahma Network,Blanket,320,152,9.0,Pending
+DST-051,2026-04-15,Khan Younis,Sanad Aid,Winter Kit,60,0,42.0,Cancelled
+DST-052,2026-04-18,Gaza City,Rahma Network,Kitchen Set,220,213,35.0,Completed
+DST-053,2026-04-20,North Gaza,Amal Foundation,Blanket,580,279,9.0,Completed
+DST-054,2026-04-25,Gaza City,Sanad Aid,Kitchen Set,520,0,35.0,Cancelled
+DST-055,2026-04-26,North Gaza,Rahma Network,Blanket,150,72,9.0,Completed
+DST-056,2026-04-27,Gaza City,Amal Foundation,Kitchen Set,240,237,35.0,Completed
+DST-057,2026-05-02,Rafah,Sanad Aid,Blanket,80,34,9.0,Completed
+DST-058,2026-05-03,Rafah,Sanad Aid,Kitchen Set,600,0,35.0,Cancelled
+DST-059,2026-05-04,Deir al-Balah,Nour Relief,Food Parcel,390,343,28.0,Completed
+DST-060,2026-05-04,North Gaza,Sanad Aid,Blanket,270,118,9.0,Completed
