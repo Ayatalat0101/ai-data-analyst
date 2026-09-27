@@ -3,7 +3,7 @@
 # خطة المشروع — محلل البيانات الذكي (الخيار A)
 
 > ورقة التصميم كُتبت **قبل أي كود** كما يطلب دليل AI Systems Building Challenge.
-> إعداد: ديمة طلعت سمرة · الأدوات: Python · Streamlit · Pandas · Plotly · مخطِّط يعتمد على LLM
+> إعداد: اية طلعت سمرة · الأدوات: Python · Streamlit · Pandas · Plotly · مخطِّط يعتمد على LLM
 
 ---
 

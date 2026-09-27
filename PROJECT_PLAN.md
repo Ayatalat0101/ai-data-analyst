@@ -1,7 +1,7 @@
 # PROJECT_PLAN — AI Data Analyst (Option A)
 
 > Design sheet completed **before any code**, as required by the AI Systems Building Challenge.
-> Author: Deema Talat Samra · Stack: Python · Streamlit · Pandas · Plotly · LLM planner
+> Author: Aya Talat Samra · Stack: Python · Streamlit · Pandas · Plotly · LLM planner
 
 ---
 

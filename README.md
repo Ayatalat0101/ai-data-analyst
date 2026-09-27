@@ -180,7 +180,7 @@ ai-data-analyst/
 
 ## About
 
-Built by **Deema Talat Samra**, software engineer moving into humanitarian information management and MEAL, as part of the *AI Systems Building Challenge* (Option A).
-[Portfolio](https://deematalat.github.io) · [GitHub](https://github.com/deematalat)
+Built by **Aya Talat Samra**, software engineer moving into humanitarian information management and MEAL, as part of the *AI Systems Building Challenge* (Option A).
+[Portfolio](https://Ayatalat.github.io) · [GitHub](https://github.com/Ayatalat)
 
 Sample data is synthetic and contains no real people or organisations. MIT License.

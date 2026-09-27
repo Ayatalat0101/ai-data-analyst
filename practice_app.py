@@ -18,7 +18,7 @@ st.title("🧪 Streamlit practice page")
 #    that happens right after the click.
 # ---------------------------------------------------------------
 st.header("1. Text input and button")
-name = st.text_input("Your name", placeholder="Deema")
+name = st.text_input("Your name", placeholder="aya")
 
 if st.button("Say hello"):
     if not name.strip():
