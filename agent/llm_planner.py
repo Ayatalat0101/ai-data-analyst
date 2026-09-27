@@ -169,7 +169,10 @@ class GeminiBackend:
         from google.genai import types
 
         def call(with_schema: bool) -> str:
-            cfg = dict(system_instruction=system, response_mime_type="application/json")
+            cfg = dict(system_instruction=system, response_mime_type="application/json",
+                       # We pass no tools, so turn off the SDK's automatic function
+                       # calling: it only prints a noisy "AFC is not recommended" notice.
+                       automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True))
             if with_schema:
                 cfg["response_json_schema"] = Plan.model_json_schema()   # structured output
             resp = self.client.models.generate_content(
