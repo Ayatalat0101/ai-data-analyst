@@ -176,7 +176,7 @@ ai-data-analyst/
 - [ ] Percentages and ratios ("share of cancelled distributions")
 - [ ] Arabic questions
 - [ ] Two-step plans ("compare Rafah and Khan Younis by month")
-- [ ] Deploy on Streamlit Community Cloud with a live demo link
+- [x] Deploy on Streamlit Community Cloud ([live demo](https://ai-data-analyst-ayasamra.streamlit.app/))
 
 ## About
 
