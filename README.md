@@ -7,7 +7,7 @@ An AI agent plans the analysis, code validates the plan against the real columns
 ![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)
 ![Gemini](https://img.shields.io/badge/LLM-Gemini%20%E2%86%92%20Groq%20%E2%86%92%20rules-2a78d6)
 ![Tests](https://img.shields.io/badge/tests-86%20passing-2ea44f)
-
+   [![Open live demo](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-data-analyst-ayasamra.streamlit.app/)
 ![Answer with chart and explanation](screenshots/03_answer_chart.png)
 
 ---
