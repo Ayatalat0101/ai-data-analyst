@@ -81,7 +81,7 @@ The common pattern of asking an LLM to *write Pandas code and run it* is unsafe 
 **Requirements:** Python 3.10+. An API key is optional: without one, the rule-based planner is used.
 
 ```bash
-git clone https://github.com/deematalat/ai-data-analyst.git
+git clone https://github.com/ayatalat0101/ai-data-analyst.git
 cd ai-data-analyst
 python -m venv .venv
 # Windows: .venv\Scripts\Activate.ps1     macOS/Linux: source .venv/bin/activate
